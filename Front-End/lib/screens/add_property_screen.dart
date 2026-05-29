@@ -16,17 +16,13 @@ class AddPropertyScreen extends StatefulWidget {
 
 class _AddPropertyScreenState extends State<AddPropertyScreen> {
   String _propertyType = 'Apartment';
-  String _roomType = 'Private Room';
   int _bedrooms = 1;
-  bool _utilitiesIncluded = false;
   final Set<String> _selectedAmenities = {};
-  DateTime _postedDate = DateTime.now();
   DateTime _availableDate = DateTime.now();
 
   final TextEditingController _titleController = TextEditingController();
   final TextEditingController _rentController = TextEditingController();
   final TextEditingController _addressController = TextEditingController();
-  final TextEditingController _descriptionController = TextEditingController();
   final TextEditingController _phoneController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
 
@@ -76,24 +72,10 @@ class _AddPropertyScreenState extends State<AddPropertyScreen> {
                     hint: 'Enter title…',
                   ),
                   const SizedBox(height: 20),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: _buildTextField(
-                          controller: _rentController,
-                          hint: r'ETB 0.00',
-                          label: 'Monthly Rent',
-                        ),
-                      ),
-                      const SizedBox(width: 14),
-                      Expanded(
-                        child: _buildDateField(
-                          label: 'Posted Date',
-                          date: _postedDate,
-                          onTap: () => _selectDate(context, isPosted: true),
-                        ),
-                      ),
-                    ],
+                  _buildTextField(
+                    controller: _rentController,
+                    label: 'Monthly Rent',
+                    hint: r'ETB 0.00',
                   ),
                   const SizedBox(height: 20),
                   _buildTextField(
@@ -136,19 +118,6 @@ class _AddPropertyScreenState extends State<AddPropertyScreen> {
                           onChanged: (value) {
                             if (value != null) {
                               setState(() => _propertyType = value);
-                            }
-                          },
-                        ),
-                      ),
-                      const SizedBox(width: 14),
-                      Expanded(
-                        child: _buildDropdown(
-                          label: 'Room Type',
-                          value: _roomType,
-                          options: const ['Private Room', 'Shared Room'],
-                          onChanged: (value) {
-                            if (value != null) {
-                              setState(() => _roomType = value);
                             }
                           },
                         ),
@@ -238,7 +207,7 @@ class _AddPropertyScreenState extends State<AddPropertyScreen> {
                         child: _buildDateField(
                           label: 'Availability Date',
                           date: _availableDate,
-                          onTap: () => _selectDate(context, isPosted: false),
+                          onTap: () => _selectDate(context),
                         ),
                       ),
                       const SizedBox(width: 14),
@@ -251,33 +220,6 @@ class _AddPropertyScreenState extends State<AddPropertyScreen> {
                         ),
                       ),
                     ],
-                  ),
-                  const SizedBox(height: 20),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: Text(
-                          'Utilities Included',
-                          style: TextStyle(color: _kCaption, fontSize: 14),
-                        ),
-                      ),
-                      Switch(
-                        value: _utilitiesIncluded,
-                        activeThumbColor: _kAccentColor,
-                        activeTrackColor: const Color(0xFF7A2EF0).withAlpha(90),
-                        onChanged: (value) =>
-                            setState(() => _utilitiesIncluded = value),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 24),
-                  _buildSectionTitle('Detailed Description'),
-                  const SizedBox(height: 12),
-                  _buildTextField(
-                    controller: _descriptionController,
-                    hint:
-                        'Tell potential roommates about your home, rules, and vibe…',
-                    maxLines: 6,
                   ),
                   const SizedBox(height: 24),
                   _buildSectionTitle('Contact Information'),
@@ -604,23 +546,16 @@ class _AddPropertyScreenState extends State<AddPropertyScreen> {
     );
   }
 
-  Future<void> _selectDate(
-    BuildContext context, {
-    required bool isPosted,
-  }) async {
+  Future<void> _selectDate(BuildContext context) async {
     final picked = await showDatePicker(
       context: context,
-      initialDate: isPosted ? _postedDate : _availableDate,
+      initialDate: _availableDate,
       firstDate: DateTime(2020),
       lastDate: DateTime(2035),
     );
     if (picked != null) {
       setState(() {
-        if (isPosted) {
-          _postedDate = picked;
-        } else {
-          _availableDate = picked;
-        }
+        _availableDate = picked;
       });
     }
   }
