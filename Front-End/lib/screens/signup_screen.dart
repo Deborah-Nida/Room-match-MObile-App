@@ -1,6 +1,8 @@
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 
+import '../services/auth_service.dart';
+
 const Color _kAccentColor = Color.fromARGB(255, 87, 3, 58);
 const Color _kBackground = Color(0xFFF7F8FB);
 const Color _kSurface = Colors.white;
@@ -18,7 +20,17 @@ class SignupScreen extends StatefulWidget {
 class _SignupScreenState extends State<SignupScreen> {
   bool _showPassword = false;
   bool _showConfirmPassword = false;
+
   String _selectedGender = 'Female';
+
+  final nameController = TextEditingController();
+  final emailController = TextEditingController();
+  final phoneController = TextEditingController();
+
+  final passwordController = TextEditingController();
+  final confirmPasswordController = TextEditingController();
+
+  final authService = AuthService();
 
   @override
   Widget build(BuildContext context) {
@@ -47,20 +59,25 @@ class _SignupScreenState extends State<SignupScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const SizedBox(height: 12),
+
                   Row(
                     children: [
                       IconButton(
                         icon: const Icon(Icons.arrow_back, color: _kBodyText),
                         onPressed: () => Navigator.pop(context),
                       ),
+
                       const SizedBox(width: 6),
+
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [_buildRoomRentalLogoSmall()],
                       ),
                     ],
                   ),
+
                   const SizedBox(height: 12),
+
                   Container(
                     padding: const EdgeInsets.symmetric(
                       horizontal: 12,
@@ -79,7 +96,9 @@ class _SignupScreenState extends State<SignupScreen> {
                       ),
                     ),
                   ),
+
                   const SizedBox(height: 16),
+
                   const Text(
                     'Create an Account',
                     style: TextStyle(
@@ -88,7 +107,9 @@ class _SignupScreenState extends State<SignupScreen> {
                       color: _kBodyText,
                     ),
                   ),
+
                   const SizedBox(height: 8),
+
                   const Text(
                     'Find your perfect living space and compatible roommates today.',
                     style: TextStyle(
@@ -97,7 +118,9 @@ class _SignupScreenState extends State<SignupScreen> {
                       height: 1.6,
                     ),
                   ),
+
                   const SizedBox(height: 22),
+
                   ClipRRect(
                     borderRadius: BorderRadius.circular(24),
                     child: Image.network(
@@ -107,45 +130,66 @@ class _SignupScreenState extends State<SignupScreen> {
                       fit: BoxFit.cover,
                     ),
                   ),
+
                   const SizedBox(height: 22),
+
                   _buildInputField(
+                    controller: nameController,
                     label: 'Full Name',
                     hint: 'Abebe Kebede',
                     prefixIcon: Icons.person_outline,
                   ),
+
                   const SizedBox(height: 16),
+
                   _buildInputField(
+                    controller: emailController,
                     label: 'Email Address',
                     hint: 'abebe.kebede@example.com',
                     prefixIcon: Icons.email_outlined,
                     keyboardType: TextInputType.emailAddress,
                   ),
+
                   const SizedBox(height: 16),
+
                   _buildInputField(
+                    controller: phoneController,
                     label: 'Phone Number',
                     hint: '+251 (9) 123-4567',
                     prefixIcon: Icons.phone_outlined,
                     keyboardType: TextInputType.phone,
                   ),
+
                   const SizedBox(height: 16),
+
                   _buildPasswordField(
+                    controller: passwordController,
                     label: 'Password',
                     hint: '******',
                     visible: _showPassword,
-                    onToggle: () => setState(() {
-                      _showPassword = !_showPassword;
-                    }),
+                    onToggle: () {
+                      setState(() {
+                        _showPassword = !_showPassword;
+                      });
+                    },
                   ),
+
                   const SizedBox(height: 16),
+
                   _buildPasswordField(
+                    controller: confirmPasswordController,
                     label: 'Confirm Password',
                     hint: '******',
                     visible: _showConfirmPassword,
-                    onToggle: () => setState(() {
-                      _showConfirmPassword = !_showConfirmPassword;
-                    }),
+                    onToggle: () {
+                      setState(() {
+                        _showConfirmPassword = !_showConfirmPassword;
+                      });
+                    },
                   ),
+
                   const SizedBox(height: 18),
+
                   const Text(
                     'Gender',
                     style: TextStyle(
@@ -154,16 +198,23 @@ class _SignupScreenState extends State<SignupScreen> {
                       letterSpacing: 0.2,
                     ),
                   ),
+
                   const SizedBox(height: 12),
+
                   Row(
                     children: [
                       _buildGenderChip('Male'),
+
                       const SizedBox(width: 10),
+
                       _buildGenderChip('Female'),
+
                       const SizedBox(width: 10),
                     ],
                   ),
+
                   const SizedBox(height: 28),
+
                   SizedBox(
                     width: double.infinity,
                     child: ElevatedButton(
@@ -174,7 +225,46 @@ class _SignupScreenState extends State<SignupScreen> {
                         ),
                         padding: const EdgeInsets.symmetric(vertical: 16),
                       ),
-                      onPressed: () {},
+                      onPressed: () async {
+                        if (passwordController.text !=
+                            confirmPasswordController.text) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text('Passwords do not match'),
+                            ),
+                          );
+
+                          return;
+                        }
+
+                        final success = await authService.signup(
+                          nameController.text.trim(),
+                          emailController.text.trim(),
+                          phoneController.text.trim(),
+                          passwordController.text.trim(),
+                          _selectedGender,
+                        );
+
+                        if (!context.mounted) return;
+
+                        if (!success) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text('Email already registered'),
+                            ),
+                          );
+
+                          return;
+                        }
+
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text('Account created successfully'),
+                          ),
+                        );
+
+                        Navigator.pop(context);
+                      },
                       child: const Text(
                         'Create Account',
                         style: TextStyle(
@@ -184,7 +274,9 @@ class _SignupScreenState extends State<SignupScreen> {
                       ),
                     ),
                   ),
+
                   const SizedBox(height: 18),
+
                   Container(
                     width: double.infinity,
                     decoration: BoxDecoration(
@@ -201,7 +293,9 @@ class _SignupScreenState extends State<SignupScreen> {
                       onPressed: () {},
                     ),
                   ),
+
                   const SizedBox(height: 22),
+
                   Center(
                     child: RichText(
                       text: TextSpan(
@@ -223,6 +317,7 @@ class _SignupScreenState extends State<SignupScreen> {
                       ),
                     ),
                   ),
+
                   const SizedBox(height: 22),
                 ],
               ),
@@ -235,11 +330,14 @@ class _SignupScreenState extends State<SignupScreen> {
 
   Widget _buildGenderChip(String label) {
     final bool selected = _selectedGender == label;
+
     return Expanded(
       child: GestureDetector(
-        onTap: () => setState(() {
-          _selectedGender = label;
-        }),
+        onTap: () {
+          setState(() {
+            _selectedGender = label;
+          });
+        },
         child: Container(
           padding: const EdgeInsets.symmetric(vertical: 12),
           decoration: BoxDecoration(
@@ -262,6 +360,7 @@ class _SignupScreenState extends State<SignupScreen> {
   }
 
   Widget _buildInputField({
+    required TextEditingController controller,
     required String label,
     required String hint,
     required IconData prefixIcon,
@@ -278,7 +377,9 @@ class _SignupScreenState extends State<SignupScreen> {
             letterSpacing: 0.8,
           ),
         ),
+
         const SizedBox(height: 8),
+
         Container(
           decoration: BoxDecoration(
             color: _kSurface,
@@ -286,6 +387,7 @@ class _SignupScreenState extends State<SignupScreen> {
             border: Border.all(color: _kBorder),
           ),
           child: TextField(
+            controller: controller,
             keyboardType: keyboardType,
             decoration: InputDecoration(
               prefixIcon: Icon(prefixIcon, color: _kCaption),
@@ -300,6 +402,7 @@ class _SignupScreenState extends State<SignupScreen> {
   }
 
   Widget _buildPasswordField({
+    required TextEditingController controller,
     required String label,
     required String hint,
     required bool visible,
@@ -316,7 +419,9 @@ class _SignupScreenState extends State<SignupScreen> {
             letterSpacing: 0.8,
           ),
         ),
+
         const SizedBox(height: 8),
+
         Container(
           decoration: BoxDecoration(
             color: _kSurface,
@@ -324,6 +429,7 @@ class _SignupScreenState extends State<SignupScreen> {
             border: Border.all(color: _kBorder),
           ),
           child: TextField(
+            controller: controller,
             obscureText: !visible,
             decoration: InputDecoration(
               prefixIcon: const Icon(Icons.lock_outline, color: _kCaption),
@@ -366,7 +472,9 @@ class _SignupScreenState extends State<SignupScreen> {
             ],
           ),
         ),
+
         const SizedBox(width: 8),
+
         const Text(
           'RoomRental',
           style: TextStyle(

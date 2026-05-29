@@ -1,5 +1,7 @@
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+
+import '../services/auth_service.dart';
 import 'home_screen.dart';
 import 'signup_screen.dart';
 
@@ -20,6 +22,11 @@ class LoginScreen extends StatefulWidget {
 class _LoginScreenState extends State<LoginScreen> {
   bool _remember = false;
   bool _showPassword = false;
+
+  final emailController = TextEditingController();
+  final passwordController = TextEditingController();
+
+  final authService = AuthService();
 
   @override
   Widget build(BuildContext context) {
@@ -48,8 +55,11 @@ class _LoginScreenState extends State<LoginScreen> {
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   const SizedBox(height: 16),
+
                   _buildRoomRentalLogo(),
+
                   const SizedBox(height: 20),
+
                   const Text(
                     'Welcome Back!',
                     style: TextStyle(
@@ -58,9 +68,11 @@ class _LoginScreenState extends State<LoginScreen> {
                       color: _kBodyText,
                     ),
                   ),
+
                   const SizedBox(height: 8),
+
                   const Text(
-                    'Sign in to continue ',
+                    'Sign in to continue',
                     style: TextStyle(
                       fontSize: 14,
                       color: _kCaption,
@@ -68,29 +80,41 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                     textAlign: TextAlign.center,
                   ),
+
                   const SizedBox(height: 28),
+
                   _buildInputField(
+                    controller: emailController,
                     label: 'Email Address',
                     hint: 'hello@gmail.com',
                     prefixIcon: Icons.email_outlined,
                     keyboardType: TextInputType.emailAddress,
                   ),
+
                   const SizedBox(height: 16),
+
                   _buildPasswordField(
+                    controller: passwordController,
                     label: 'Password',
                     hint: '******',
                     visible: _showPassword,
-                    onToggle: () => setState(() {
-                      _showPassword = !_showPassword;
-                    }),
+                    onToggle: () {
+                      setState(() {
+                        _showPassword = !_showPassword;
+                      });
+                    },
                   ),
+
                   const SizedBox(height: 12),
+
                   Row(
                     children: [
                       GestureDetector(
-                        onTap: () => setState(() {
-                          _remember = !_remember;
-                        }),
+                        onTap: () {
+                          setState(() {
+                            _remember = !_remember;
+                          });
+                        },
                         child: Row(
                           children: [
                             Container(
@@ -117,7 +141,9 @@ class _LoginScreenState extends State<LoginScreen> {
                           ],
                         ),
                       ),
+
                       const Spacer(),
+
                       TextButton(
                         onPressed: () {},
                         child: const Text(
@@ -130,7 +156,9 @@ class _LoginScreenState extends State<LoginScreen> {
                       ),
                     ],
                   ),
+
                   const SizedBox(height: 24),
+
                   SizedBox(
                     width: double.infinity,
                     child: ElevatedButton(
@@ -141,11 +169,28 @@ class _LoginScreenState extends State<LoginScreen> {
                         ),
                         padding: const EdgeInsets.symmetric(vertical: 16),
                       ),
-                      onPressed: () {
-                        Navigator.pushReplacement(
-                          context,
-                          MaterialPageRoute(builder: (_) => const HomeScreen()),
+                      onPressed: () async {
+                        final success = await authService.login(
+                          emailController.text.trim(),
+                          passwordController.text.trim(),
                         );
+
+                        if (!context.mounted) return;
+
+                        if (success) {
+                          Navigator.pushReplacement(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => const HomeScreen(),
+                            ),
+                          );
+                        } else {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text('Invalid email or password'),
+                            ),
+                          );
+                        }
                       },
                       child: const Text(
                         'Sign In',
@@ -156,7 +201,9 @@ class _LoginScreenState extends State<LoginScreen> {
                       ),
                     ),
                   ),
+
                   const SizedBox(height: 18),
+
                   Container(
                     width: double.infinity,
                     decoration: BoxDecoration(
@@ -173,7 +220,9 @@ class _LoginScreenState extends State<LoginScreen> {
                       onPressed: () {},
                     ),
                   ),
+
                   const SizedBox(height: 24),
+
                   Center(
                     child: RichText(
                       text: TextSpan(
@@ -200,6 +249,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       ),
                     ),
                   ),
+
                   const SizedBox(height: 24),
                 ],
               ),
@@ -211,6 +261,7 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   Widget _buildInputField({
+    required TextEditingController controller,
     required String label,
     required String hint,
     required IconData prefixIcon,
@@ -227,7 +278,9 @@ class _LoginScreenState extends State<LoginScreen> {
             letterSpacing: 0.8,
           ),
         ),
+
         const SizedBox(height: 8),
+
         Container(
           decoration: BoxDecoration(
             color: _kSurface,
@@ -235,6 +288,7 @@ class _LoginScreenState extends State<LoginScreen> {
             border: Border.all(color: _kBorder),
           ),
           child: TextField(
+            controller: controller,
             keyboardType: keyboardType,
             decoration: InputDecoration(
               prefixIcon: Icon(prefixIcon, color: _kCaption),
@@ -249,6 +303,7 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   Widget _buildPasswordField({
+    required TextEditingController controller,
     required String label,
     required String hint,
     required bool visible,
@@ -265,7 +320,9 @@ class _LoginScreenState extends State<LoginScreen> {
             letterSpacing: 0.8,
           ),
         ),
+
         const SizedBox(height: 8),
+
         Container(
           decoration: BoxDecoration(
             color: _kSurface,
@@ -273,6 +330,7 @@ class _LoginScreenState extends State<LoginScreen> {
             border: Border.all(color: _kBorder),
           ),
           child: TextField(
+            controller: controller,
             obscureText: !visible,
             decoration: InputDecoration(
               prefixIcon: const Icon(Icons.lock_outline, color: _kCaption),
@@ -315,7 +373,9 @@ class _LoginScreenState extends State<LoginScreen> {
             ],
           ),
         ),
+
         const SizedBox(height: 12),
+
         const Text(
           'RoomRental',
           style: TextStyle(
