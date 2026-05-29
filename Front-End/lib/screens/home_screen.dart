@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'add_property_screen.dart';
+import 'profile_screen.dart';
 
 const Color _kAccentColor = Color(0xFFD946A6);
 const Color _kBackground = Color(0xFFF7F8FB);
@@ -670,12 +671,20 @@ class _HomeScreenState extends State<HomeScreen> {
         padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 10),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: const [
-            Icon(Icons.home, color: _kAccentColor),
-            Icon(Icons.search, color: _kCaption),
-            SizedBox(width: 48),
-            Icon(Icons.chat_bubble_outline, color: _kCaption),
-            Icon(Icons.person_outline, color: _kCaption),
+          children: [
+            IconButton(
+              icon: const Icon(Icons.home, color: _kAccentColor),
+              onPressed: () {},
+            ),
+            const SizedBox(width: 48),
+            IconButton(
+              icon: const Icon(Icons.person_outline, color: _kCaption),
+              onPressed: () {
+                Navigator.of(context).push(
+                  MaterialPageRoute(builder: (_) => const ProfileScreen()),
+                );
+              },
+            ),
           ],
         ),
       ),
