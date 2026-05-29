@@ -274,6 +274,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
 import 'package:flutter/material.dart';
 
+import '../services/dummy_data_service.dart';
+
 const Color _kAccentColor = Color(0xFFD946A6);
 const Color _kBackground = Color(0xFFF7F8FB);
 const Color _kSurface = Colors.white;
@@ -311,6 +313,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   @override
   Widget build(BuildContext context) {
+    if (_profileData == null) {
+      return const Scaffold(
+        backgroundColor: _kBackground,
+        body: Center(child: CircularProgressIndicator()),
+      );
+    }
+
+    final profile = _profileData!;
+
     return Scaffold(
       backgroundColor: _kBackground,
       appBar: AppBar(
@@ -378,8 +389,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       height: 120,
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
-                        image: const DecorationImage(
-                          image: NetworkImage('https://i.pravatar.cc/300'),
+                        image: DecorationImage(
+                          image: NetworkImage(profile.avatarUrl),
                           fit: BoxFit.cover,
                         ),
                       ),
@@ -418,14 +429,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
               _buildTextField(
                 controller: _nameController,
                 label: 'Full name',
-                hintText: 'Abebe kebede',
+                hintText: profile.hints['name'] ?? '',
                 icon: Icons.person,
               ),
               const SizedBox(height: 18),
               _buildTextField(
                 controller: _emailController,
                 label: 'Email address',
-                hintText: 'abebe.kebede@uni.edu',
+                hintText: profile.hints['email'] ?? '',
                 icon: Icons.email_outlined,
                 keyboardType: TextInputType.emailAddress,
               ),
@@ -433,7 +444,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               _buildTextField(
                 controller: _phoneController,
                 label: 'Phone number',
-                hintText: '+251 (9) 234-5678',
+                hintText: profile.hints['phone'] ?? '',
                 icon: Icons.phone_outlined,
                 keyboardType: TextInputType.phone,
               ),
@@ -441,7 +452,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               _buildTextField(
                 controller: _bioController,
                 label: 'Bio / Status',
-                hintText: 'A university student living in a shared flat...',
+                hintText: profile.hints['bio'] ?? '',
                 icon: Icons.notes_outlined,
                 maxLines: 4,
               ),
