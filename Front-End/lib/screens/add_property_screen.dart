@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-const Color _kAccentColor = Color(0xFF7A2EF0);
+const Color _kAccentColor = Color(0xFFD946A6);
 const Color _kBackground = Color(0xFFF7F8FB);
 const Color _kSurface = Colors.white;
 const Color _kBodyText = Color(0xFF111827);
@@ -17,7 +17,7 @@ class AddPropertyScreen extends StatefulWidget {
 class _AddPropertyScreenState extends State<AddPropertyScreen> {
   String _propertyType = 'Apartment';
   String _roomType = 'Private Room';
-  int _roommates = 1;
+  int _bedrooms = 1;
   bool _utilitiesIncluded = false;
   final Set<String> _selectedAmenities = {};
   DateTime _postedDate = DateTime.now();
@@ -81,7 +81,7 @@ class _AddPropertyScreenState extends State<AddPropertyScreen> {
                       Expanded(
                         child: _buildTextField(
                           controller: _rentController,
-                          hint: r'$ 0.00',
+                          hint: r'ETB 0.00',
                           label: 'Monthly Rent',
                         ),
                       ),
@@ -99,7 +99,7 @@ class _AddPropertyScreenState extends State<AddPropertyScreen> {
                   _buildTextField(
                     controller: _addressController,
                     label: 'Location / Address',
-                    hint: '123 Harmony St, San Francisco',
+                    hint: '4 Killo, Addis Ababa',
                     suffix: TextButton.icon(
                       style: TextButton.styleFrom(
                         padding: const EdgeInsets.symmetric(
@@ -157,7 +157,7 @@ class _AddPropertyScreenState extends State<AddPropertyScreen> {
                   ),
                   const SizedBox(height: 20),
                   Text(
-                    'Number of Roommates',
+                    'Number of Bedrooms',
                     style: TextStyle(
                       color: _kCaption,
                       fontSize: 13,
@@ -169,8 +169,8 @@ class _AddPropertyScreenState extends State<AddPropertyScreen> {
                     children: List.generate(4, (index) {
                       final label = index < 3 ? '${index + 1}' : '3+';
                       final selected =
-                          _roommates == index + 1 ||
-                          (index == 3 && _roommates >= 4);
+                          _bedrooms == index + 1 ||
+                          (index == 3 && _bedrooms >= 4);
                       return Expanded(
                         child: Padding(
                           padding: EdgeInsets.only(right: index < 3 ? 10 : 0),
@@ -192,7 +192,7 @@ class _AddPropertyScreenState extends State<AddPropertyScreen> {
                               padding: const EdgeInsets.symmetric(vertical: 16),
                             ),
                             onPressed: () => setState(() {
-                              _roommates = index == 3 ? 4 : index + 1;
+                              _bedrooms = index == 3 ? 4 : index + 1;
                             }),
                             child: Text(
                               label,
@@ -285,7 +285,7 @@ class _AddPropertyScreenState extends State<AddPropertyScreen> {
                   _buildTextField(
                     controller: _phoneController,
                     label: 'Phone Number',
-                    hint: '+1 (555) 000-0000',
+                    hint: '+251 (9) 123-4567',
                     keyboardType: TextInputType.phone,
                   ),
                   const SizedBox(height: 16),
@@ -322,7 +322,7 @@ class _AddPropertyScreenState extends State<AddPropertyScreen> {
                       'By publishing, you agree to Room Match Terms & Service',
                       textAlign: TextAlign.center,
                       style: TextStyle(
-                        color: _kCaption,
+                        color: _kBodyText,
                         fontSize: 12,
                         height: 1.4,
                       ),
