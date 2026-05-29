@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'add_property_screen.dart';
 
-const Color _kAccentColor = Color(0xFF7A2EF0);
+const Color _kAccentColor = Color(0xFFD946A6);
 const Color _kBackground = Color(0xFFF7F8FB);
 const Color _kSurface = Colors.white;
 const Color _kBodyText = Color(0xFF111827);
@@ -116,14 +116,22 @@ class _HomeScreenState extends State<HomeScreen> {
                     color: _kAccentColor,
                     borderRadius: BorderRadius.circular(14),
                   ),
-                  child: const Center(
-                    child: Icon(Icons.bolt, color: Colors.white, size: 24),
+                  child: Stack(
+                    alignment: Alignment.center,
+                    children: [
+                      const Icon(Icons.home, color: Colors.white, size: 22),
+                      Positioned(
+                        bottom: 2,
+                        right: 2,
+                        child: Icon(Icons.bed, color: Colors.white, size: 10),
+                      ),
+                    ],
                   ),
                 ),
                 const SizedBox(width: 12),
                 const Expanded(
                   child: Text(
-                    'Room-Match',
+                    'RoomRental',
                     style: TextStyle(
                       fontSize: 20,
                       fontWeight: FontWeight.w700,

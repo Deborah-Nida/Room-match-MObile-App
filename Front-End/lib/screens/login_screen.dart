@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'home_screen.dart';
 import 'signup_screen.dart';
 
-const Color _kAccentColor = Color(0xFF7A2EF0);
+const Color _kAccentColor = Color(0xFFD946A6);
 const Color _kBackground = Color(0xFFF7F8FB);
 const Color _kSurface = Colors.white;
 const Color _kBodyText = Color(0xFF111827);
@@ -48,15 +48,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   const SizedBox(height: 16),
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(24),
-                    child: Image.network(
-                      'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=1200&q=80',
-                      width: 120,
-                      height: 120,
-                      fit: BoxFit.cover,
-                    ),
-                  ),
+                  _buildRoomRentalLogo(),
                   const SizedBox(height: 20),
                   const Text(
                     'Welcome Back!',
@@ -68,21 +60,25 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                   const SizedBox(height: 8),
                   const Text(
-                    'Sign in to continue your journey',
-                    style: TextStyle(fontSize: 14, color: _kCaption, height: 1.6),
+                    'Sign in to continue ',
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: _kCaption,
+                      height: 1.6,
+                    ),
                     textAlign: TextAlign.center,
                   ),
                   const SizedBox(height: 28),
                   _buildInputField(
                     label: 'Email Address',
-                    hint: 'hello@lumina.com',
+                    hint: 'hello@gmail.com',
                     prefixIcon: Icons.email_outlined,
                     keyboardType: TextInputType.emailAddress,
                   ),
                   const SizedBox(height: 16),
                   _buildPasswordField(
                     label: 'Password',
-                    hint: '*',
+                    hint: '******',
                     visible: _showPassword,
                     onToggle: () => setState(() {
                       _showPassword = !_showPassword;
@@ -106,7 +102,11 @@ class _LoginScreenState extends State<LoginScreen> {
                                 border: Border.all(color: _kBorder),
                               ),
                               child: _remember
-                                  ? const Icon(Icons.check, color: Colors.white, size: 16)
+                                  ? const Icon(
+                                      Icons.check,
+                                      color: Colors.white,
+                                      size: 16,
+                                    )
                                   : null,
                             ),
                             const SizedBox(width: 10),
@@ -149,7 +149,10 @@ class _LoginScreenState extends State<LoginScreen> {
                       },
                       child: const Text(
                         'Sign In',
-                        style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w700,
+                        ),
                       ),
                     ),
                   ),
@@ -218,7 +221,11 @@ class _LoginScreenState extends State<LoginScreen> {
       children: [
         Text(
           label.toUpperCase(),
-          style: const TextStyle(fontSize: 12, color: _kCaption, letterSpacing: 0.8),
+          style: const TextStyle(
+            fontSize: 12,
+            color: _kCaption,
+            letterSpacing: 0.8,
+          ),
         ),
         const SizedBox(height: 8),
         Container(
@@ -252,7 +259,11 @@ class _LoginScreenState extends State<LoginScreen> {
       children: [
         Text(
           label.toUpperCase(),
-          style: const TextStyle(fontSize: 12, color: _kCaption, letterSpacing: 0.8),
+          style: const TextStyle(
+            fontSize: 12,
+            color: _kCaption,
+            letterSpacing: 0.8,
+          ),
         ),
         const SizedBox(height: 8),
         Container(
@@ -276,6 +287,41 @@ class _LoginScreenState extends State<LoginScreen> {
               border: InputBorder.none,
               contentPadding: const EdgeInsets.symmetric(vertical: 16),
             ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildRoomRentalLogo() {
+    return Column(
+      children: [
+        Container(
+          width: 120,
+          height: 120,
+          decoration: BoxDecoration(
+            color: const Color.fromRGBO(217, 70, 166, 0.15),
+            borderRadius: BorderRadius.circular(24),
+          ),
+          child: Stack(
+            alignment: Alignment.center,
+            children: [
+              Icon(Icons.home, size: 80, color: _kAccentColor),
+              Positioned(
+                bottom: 12,
+                right: 12,
+                child: Icon(Icons.bed, size: 32, color: _kAccentColor),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 12),
+        const Text(
+          'RoomRental',
+          style: TextStyle(
+            fontSize: 24,
+            fontWeight: FontWeight.w800,
+            color: _kBodyText,
           ),
         ),
       ],

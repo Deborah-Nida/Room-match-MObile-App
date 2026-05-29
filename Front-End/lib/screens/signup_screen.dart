@@ -1,7 +1,7 @@
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 
-const Color _kAccentColor = Color(0xFF7A2EF0);
+const Color _kAccentColor = Color.fromARGB(255, 87, 3, 58);
 const Color _kBackground = Color(0xFFF7F8FB);
 const Color _kSurface = Colors.white;
 const Color _kBodyText = Color(0xFF111827);
@@ -54,13 +54,9 @@ class _SignupScreenState extends State<SignupScreen> {
                         onPressed: () => Navigator.pop(context),
                       ),
                       const SizedBox(width: 6),
-                      const Text(
-                        'Roomie',
-                        style: TextStyle(
-                          fontSize: 20,
-                          fontWeight: FontWeight.w700,
-                          color: _kAccentColor,
-                        ),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [_buildRoomRentalLogoSmall()],
                       ),
                     ],
                   ),
@@ -71,7 +67,7 @@ class _SignupScreenState extends State<SignupScreen> {
                       vertical: 6,
                     ),
                     decoration: BoxDecoration(
-                      color: const Color.fromRGBO(122, 46, 240, 0.12),
+                      color: const Color.fromRGBO(217, 70, 166, 0.12),
                       borderRadius: BorderRadius.circular(20),
                     ),
                     child: const Text(
@@ -85,7 +81,7 @@ class _SignupScreenState extends State<SignupScreen> {
                   ),
                   const SizedBox(height: 16),
                   const Text(
-                    'Create Account',
+                    'Create an Account',
                     style: TextStyle(
                       fontSize: 32,
                       fontWeight: FontWeight.w800,
@@ -114,27 +110,27 @@ class _SignupScreenState extends State<SignupScreen> {
                   const SizedBox(height: 22),
                   _buildInputField(
                     label: 'Full Name',
-                    hint: 'Jane Cooper',
+                    hint: 'Abebe Kebede',
                     prefixIcon: Icons.person_outline,
                   ),
                   const SizedBox(height: 16),
                   _buildInputField(
                     label: 'Email Address',
-                    hint: 'jane.cooper@example.com',
+                    hint: 'abebe.kebede@example.com',
                     prefixIcon: Icons.email_outlined,
                     keyboardType: TextInputType.emailAddress,
                   ),
                   const SizedBox(height: 16),
                   _buildInputField(
                     label: 'Phone Number',
-                    hint: '+1 (555) 000-0000',
+                    hint: '+251 (9) 123-4567',
                     prefixIcon: Icons.phone_outlined,
                     keyboardType: TextInputType.phone,
                   ),
                   const SizedBox(height: 16),
                   _buildPasswordField(
                     label: 'Password',
-                    hint: '*',
+                    hint: '******',
                     visible: _showPassword,
                     onToggle: () => setState(() {
                       _showPassword = !_showPassword;
@@ -143,7 +139,7 @@ class _SignupScreenState extends State<SignupScreen> {
                   const SizedBox(height: 16),
                   _buildPasswordField(
                     label: 'Confirm Password',
-                    hint: '*',
+                    hint: '******',
                     visible: _showConfirmPassword,
                     onToggle: () => setState(() {
                       _showConfirmPassword = !_showConfirmPassword;
@@ -165,7 +161,6 @@ class _SignupScreenState extends State<SignupScreen> {
                       const SizedBox(width: 10),
                       _buildGenderChip('Female'),
                       const SizedBox(width: 10),
-                      _buildGenderChip('Other'),
                     ],
                   ),
                   const SizedBox(height: 28),
@@ -343,6 +338,41 @@ class _SignupScreenState extends State<SignupScreen> {
               border: InputBorder.none,
               contentPadding: const EdgeInsets.symmetric(vertical: 16),
             ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildRoomRentalLogoSmall() {
+    return Row(
+      children: [
+        Container(
+          width: 48,
+          height: 48,
+          decoration: BoxDecoration(
+            color: const Color.fromRGBO(217, 70, 166, 0.15),
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Stack(
+            alignment: Alignment.center,
+            children: [
+              Icon(Icons.home, size: 32, color: _kAccentColor),
+              Positioned(
+                bottom: 4,
+                right: 4,
+                child: Icon(Icons.bed, size: 14, color: _kAccentColor),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(width: 8),
+        const Text(
+          'RoomRental',
+          style: TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.w800,
+            color: _kBodyText,
           ),
         ),
       ],
