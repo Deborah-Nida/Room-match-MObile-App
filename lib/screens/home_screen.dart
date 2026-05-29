@@ -1,482 +1,464 @@
 import 'package:flutter/material.dart';
+import 'add_property_screen.dart';
 
 const Color _kAccentColor = Color(0xFF7A2EF0);
 const Color _kBackground = Color(0xFFF7F8FB);
 const Color _kSurface = Colors.white;
-const Color _kBodyText = Color(0xFF4F5565);
-const Color _kCaption = Color(0xFF8C92A1);
+const Color _kBodyText = Color(0xFF111827);
+const Color _kCaption = Color(0xFF6B7280);
+const Color _kBorder = Color(0xFFE5E7EB);
 
-const List<Map<String, dynamic>> _filterChips = [
-  {'label': 'Location', 'selected': true},
-  {'label': 'Budget', 'selected': false},
-  {'label': 'Gender', 'selected': false},
-  {'label': 'Room type', 'selected': false},
-  {'label': 'University', 'selected': false},
-];
+const List<String> _filterChips = ['Location', 'Budget', 'Room type'];
 
-const List<Map<String, String>> _featuredListings = [
+const List<Map<String, dynamic>> _featuredListings = [
   {
-    'image': 'https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?auto=format&fit=crop&w=800&q=80',
+    'image':
+        'https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?auto=format&fit=crop&w=800&q=80',
     'price': r'$420 / mo',
-    'title': 'Bright private room — 650ft to campus',
+    'title': 'Cozy Studio near Central Uni',
     'location': 'East Heights, London',
-    'distance': '0.8 mi',
-    'roommates': '2 roommates',
+    'details': '2 roommates',
+    'tags': ['Location', 'Budget'],
   },
   {
-    'image': 'https://images.unsplash.com/photo-1494526585095-c41746248156?auto=format&fit=crop&w=800&q=80',
+    'image':
+        'https://images.unsplash.com/photo-1494526585095-c41746248156?auto=format&fit=crop&w=800&q=80',
     'price': r'$550 / mo',
     'title': 'Modern ensuite with city access',
     'location': 'Green Quarter, London',
-    'distance': '1.2 mi',
-    'roommates': '1 roommate',
+    'details': '1 roommate',
+    'tags': ['Room type'],
   },
 ];
 
-const List<Map<String, String>> _recentListings = [
+const List<Map<String, dynamic>> _recentListings = [
   {
-    'image': 'https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?auto=format&fit=crop&w=900&q=80',
+    'image':
+        'https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?auto=format&fit=crop&w=900&q=80',
     'title': 'Bright Room in Shared Flat',
     'price': r'$380/mo',
-    'snippet': 'Sunny room with built-in wardrobe and high-speed Wi-Fi. Available from June.',
+    'snippet':
+        'Sunny room with built-in wardrobe and high-speed Wi-Fi. Available from June.',
     'location': 'Camden Town',
-    'distance': '2.1 MI',
+    'distance': '2.1 miles',
     'roommates': '3 RM',
     'address': '142 Olympic Way, Wembley HA9 0NP',
-    'verified': 'true',
+    'tags': ['Location', 'Room type'],
   },
   {
-    'image': 'https://images.unsplash.com/photo-1494526585095-c41746248156?auto=format&fit=crop&w=900&q=80',
+    'image':
+        'https://images.unsplash.com/photo-1494526585095-c41746248156?auto=format&fit=crop&w=900&q=80',
     'title': 'Penthouse Room w/ City View',
     'price': r'$720/mo',
-    'snippet': 'Experience luxury living in the heart of the financial district. Access to gym and pool.',
+    'snippet':
+        'Experience luxury living in the heart of the city. Access to gym and pool.',
     'location': 'Isle of Dogs',
-    'distance': '0.8 MI',
+    'distance': '0.8 miles',
     'roommates': '2 RM',
     'address': '22 Marsh Wall, E14 9AF',
-    'verified': 'true',
+    'tags': ['Budget', 'Room type'],
   },
 ];
 
-class HomeScreen extends StatelessWidget {
+class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: _kBackground,
-      body: SafeArea(
-        child: Column(
-          children: [
-            Expanded(
-              child: ListView(
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
-                physics: const BouncingScrollPhysics(),
-                children: [
-                  _buildHeader(),
-                  const SizedBox(height: 20),
-                  _buildGreeting(),
-                  const SizedBox(height: 20),
-                  _buildSearchBar(),
-                  const SizedBox(height: 16),
-                  _buildFilterChips(),
-                  const SizedBox(height: 24),
-                  _buildSectionHeader('Featured listings', 'See all'),
-                  const SizedBox(height: 16),
-                  _buildFeaturedList(),
-                  const SizedBox(height: 26),
-                  _buildSectionHeader('Recent listings', 'Filtered by: University', showBadge: true),
-                  const SizedBox(height: 16),
-                  ..._recentListings.map(_buildRecentCard),
-                  const SizedBox(height: 24),
-                  const SizedBox(height: 90),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
-      bottomNavigationBar: _buildBottomNavigation(context),
-    );
+  State<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
+  final Set<String> _activeFilters = {};
+
+  List<Map<String, dynamic>> _filteredListings(
+    List<Map<String, dynamic>> items,
+  ) {
+    if (_activeFilters.isEmpty) return items;
+    return items.where((item) {
+      final tags = item['tags'] as List<String>;
+      return tags.any(_activeFilters.contains);
+    }).toList();
   }
 
-  Widget _buildHeader() {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Row(
-          children: [
-            Container(
-              width: 42,
-              height: 42,
-              decoration: BoxDecoration(
-                color: _kAccentColor,
-                borderRadius: BorderRadius.circular(14),
-              ),
-              child: const Icon(Icons.bolt, color: Colors.white, size: 22),
-            ),
-            const SizedBox(width: 12),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: const [
-                Text('Room-Match',
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700, color: Colors.black87)),
+  void _toggleFilter(String label) {
+    setState(() {
+      if (_activeFilters.contains(label)) {
+        _activeFilters.remove(label);
+      } else {
+        _activeFilters.add(label);
+      }
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final featuredListings = _filteredListings(_featuredListings);
+    final recentListings = _filteredListings(_recentListings);
+
+    return Scaffold(
+      backgroundColor: _kBackground,
+      extendBody: true,
+      appBar: PreferredSize(
+        preferredSize: const Size.fromHeight(90),
+        child: AppBar(
+          backgroundColor: _kBackground,
+          elevation: 0,
+          toolbarHeight: 90,
+          automaticallyImplyLeading: false,
+          title: Padding(
+            padding: const EdgeInsets.only(top: 8),
+            child: Row(
+              children: [
+                Container(
+                  width: 42,
+                  height: 42,
+                  decoration: BoxDecoration(
+                    color: _kAccentColor,
+                    borderRadius: BorderRadius.circular(14),
+                  ),
+                  child: const Center(
+                    child: Icon(Icons.bolt, color: Colors.white, size: 24),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                const Expanded(
+                  child: Text(
+                    'Room-Match',
+                    style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.w700,
+                      color: _kBodyText,
+                    ),
+                  ),
+                ),
+                Container(
+                  width: 42,
+                  height: 42,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(16),
+                    image: const DecorationImage(
+                      image: NetworkImage('https://i.pravatar.cc/100'),
+                      fit: BoxFit.cover,
+                    ),
+                  ),
+                ),
               ],
-            ),
-          ],
-        ),
-        Container(
-          width: 42,
-          height: 42,
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            border: Border.all(color: Colors.grey.shade200, width: 1.5),
-            image: const DecorationImage(
-              image: NetworkImage('https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=200&q=80'),
-              fit: BoxFit.cover,
             ),
           ),
         ),
-      ],
-    );
-  }
-
-  Widget _buildGreeting() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: const [
-        Text('Good morning, Alex',
-            style: TextStyle(fontSize: 28, fontWeight: FontWeight.w700, letterSpacing: -0.4)),
-        SizedBox(height: 8),
-        Text('6 new rooms near Central University',
-            style: TextStyle(fontSize: 15, color: _kBodyText, height: 1.5)),
-      ],
+      ),
+      body: SafeArea(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const SizedBox(height: 4),
+              const Text(
+                'Good morning, Alex',
+                style: TextStyle(
+                  fontSize: 26,
+                  fontWeight: FontWeight.w700,
+                  color: _kBodyText,
+                ),
+              ),
+              const SizedBox(height: 6),
+              Row(
+                children: const [
+                  Icon(Icons.location_on_outlined, size: 16, color: _kCaption),
+                  SizedBox(width: 6),
+                  Text(
+                    '6 new rooms near Central University',
+                    style: TextStyle(fontSize: 14, color: _kCaption),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 22),
+              _buildSearchBar(),
+              const SizedBox(height: 18),
+              _buildFilterChips(),
+              const SizedBox(height: 24),
+              _buildSectionHeader('Featured listings', 'See all'),
+              const SizedBox(height: 18),
+              _buildFeaturedList(featuredListings),
+              const SizedBox(height: 26),
+              _buildSectionHeader(
+                'Recent listings',
+                _activeFilters.isEmpty
+                    ? 'Filtered by: all'
+                    : 'Filtered by: ${_activeFilters.join(', ')}',
+                showBadge: false,
+              ),
+              const SizedBox(height: 18),
+              ...recentListings.map(_buildRecentCard),
+              const SizedBox(height: 20),
+              _buildNoMatchesCard(),
+              const SizedBox(height: 110),
+            ],
+          ),
+        ),
+      ),
+      floatingActionButton: FloatingActionButton(
+        backgroundColor: _kAccentColor,
+        onPressed: () {
+          Navigator.of(
+            context,
+          ).push(MaterialPageRoute(builder: (_) => const AddPropertyScreen()));
+        },
+        child: const Icon(Icons.add, size: 28),
+      ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
+      bottomNavigationBar: _buildBottomNavigationBar(),
     );
   }
 
   Widget _buildSearchBar() {
     return Container(
-      height: 52,
       decoration: BoxDecoration(
         color: _kSurface,
         borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.04),
-            offset: const Offset(0, 6),
-            blurRadius: 18,
+        border: Border.all(color: _kBorder),
+      ),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+      child: Row(
+        children: [
+          const Icon(Icons.search, color: _kCaption),
+          const SizedBox(width: 12),
+          const Expanded(
+            child: TextField(
+              decoration: InputDecoration(
+                border: InputBorder.none,
+                hintText: 'Search by location, uni, or keyword',
+                hintStyle: TextStyle(color: _kCaption),
+              ),
+            ),
+          ),
+          Container(
+            width: 42,
+            height: 42,
+            decoration: BoxDecoration(
+              color: _kAccentColor,
+              borderRadius: BorderRadius.circular(14),
+            ),
+            child: const Icon(Icons.tune, color: Colors.white),
           ),
         ],
-      ),
-      child: TextField(
-        style: const TextStyle(fontSize: 15, color: Colors.black87),
-        decoration: InputDecoration(
-          contentPadding: const EdgeInsets.symmetric(vertical: 14),
-          hintText: 'Search by location, uni, or keyword',
-          hintStyle: const TextStyle(color: Color(0xFF9EA6BB)),
-          prefixIcon: const Padding(
-            padding: EdgeInsets.only(left: 16, right: 10),
-            child: Icon(Icons.search, color: Color(0xFF9EA6BB), size: 22),
-          ),
-          prefixIconConstraints: const BoxConstraints(minWidth: 50),
-          suffixIcon: const Padding(
-            padding: EdgeInsets.only(right: 16),
-            child: Icon(Icons.filter_list, color: _kAccentColor, size: 22),
-          ),
-          suffixIconConstraints: const BoxConstraints(minWidth: 50),
-          border: InputBorder.none,
-        ),
       ),
     );
   }
 
   Widget _buildFilterChips() {
-    return SizedBox(
-      height: 44,
-      child: ListView.separated(
-        scrollDirection: Axis.horizontal,
-        itemCount: _filterChips.length,
-        separatorBuilder: (_, __) => const SizedBox(width: 10),
-        itemBuilder: (context, index) {
-          final chip = _filterChips[index];
-          final selected = chip['selected'] as bool;
-          return Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-            decoration: BoxDecoration(
-              color: selected ? _kAccentColor : _kSurface,
-              borderRadius: BorderRadius.circular(28),
-              border: Border.all(color: selected ? _kAccentColor : const Color(0xFFE7E9F0)),
-            ),
-            child: Row(
-              children: [
-                Text(chip['label'] as String,
-                    style: TextStyle(
-                      color: selected ? Colors.white : _kBodyText,
-                      fontWeight: selected ? FontWeight.w600 : FontWeight.w500,
-                      fontSize: 13,
-                    )),
-                const SizedBox(width: 8),
-                Icon(Icons.keyboard_arrow_down,
-                    size: 18, color: selected ? Colors.white : const Color(0xFF9EA6BB)),
-              ],
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      child: Row(
+        children: _filterChips.map((label) {
+          final bool selected = _activeFilters.contains(label);
+          return Padding(
+            padding: const EdgeInsets.only(right: 10),
+            child: ChoiceChip(
+              label: Text(label),
+              selected: selected,
+              onSelected: (_) => _toggleFilter(label),
+              selectedColor: _kAccentColor,
+              backgroundColor: _kSurface,
+              labelStyle: TextStyle(
+                color: selected ? Colors.white : _kBodyText,
+                fontWeight: FontWeight.w500,
+              ),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
             ),
           );
-        },
+        }).toList(),
       ),
     );
   }
 
-  Widget _buildSectionHeader(String title, String action, {bool showBadge = false}) {
+  Widget _buildSectionHeader(
+    String title,
+    String action, {
+    bool showBadge = false,
+  }) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
+        Text(
+          title,
+          style: const TextStyle(
+            fontSize: 18,
+            fontWeight: FontWeight.w700,
+            color: _kBodyText,
+          ),
+        ),
         Row(
           children: [
-            Text(title,
-                style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w700, color: Colors.black87)),
-            if (showBadge) ...[
-              const SizedBox(width: 10),
+            if (showBadge)
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                 decoration: BoxDecoration(
-                  color: const Color(0xFFF5F3FF),
+                  color: _kSurface,
                   borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: _kBorder),
                 ),
-                child: const Text('NEW', style: TextStyle(color: _kAccentColor, fontSize: 12, fontWeight: FontWeight.w700)),
+                child: const Text(
+                  'University',
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: _kAccentColor,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
               ),
-            ]
+            if (showBadge) const SizedBox(width: 10),
+            Text(
+              action,
+              style: const TextStyle(
+                fontSize: 14,
+                color: _kAccentColor,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
           ],
         ),
-        Text(action,
-            style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: _kAccentColor)),
       ],
     );
   }
 
-  Widget _buildFeaturedList() {
-    return SizedBox(
-      height: 250,
-      child: ListView.separated(
-        scrollDirection: Axis.horizontal,
-        itemCount: _featuredListings.length,
-        separatorBuilder: (_, __) => const SizedBox(width: 16),
-        itemBuilder: (context, index) {
-          final item = _featuredListings[index];
-          return Container(
-            width: 240,
-            decoration: BoxDecoration(
-              color: _kSurface,
-              borderRadius: BorderRadius.circular(22),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.06),
-                  blurRadius: 18,
-                  offset: const Offset(0, 8),
-                ),
-              ],
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Expanded(
-                  child: ClipRRect(
-                    borderRadius: const BorderRadius.vertical(top: Radius.circular(22)),
-                    child: Stack(
-                      children: [
-                        Positioned.fill(
-                          child: Image.network(
-                            item['image']!,
-                            fit: BoxFit.cover,
-                            errorBuilder: (_, __, ___) => Container(color: const Color(0xFFECEFF4)),
-                          ),
-                        ),
-                        Positioned(
-                          top: 12,
-                          left: 12,
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                            decoration: BoxDecoration(
-                              color: Colors.white.withOpacity(0.9),
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            child: Row(
-                              children: const [
-                                Icon(Icons.verified, color: _kAccentColor, size: 14),
-                                SizedBox(width: 6),
-                                Text('VERIFIED', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: _kAccentColor)),
-                              ],
-                            ),
-                          ),
-                        ),
-                        Positioned(
-                          bottom: 0,
-                          left: 0,
-                          right: 0,
-                          child: Container(
-                            padding: const EdgeInsets.fromLTRB(14, 14, 14, 16),
-                            decoration: BoxDecoration(
-                              gradient: LinearGradient(
-                                begin: Alignment.bottomCenter,
-                                end: Alignment.topCenter,
-                                colors: [Colors.black.withOpacity(0.45), Colors.transparent],
-                              ),
-                            ),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(item['price']!,
-                                    style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: Colors.white)),
-                                const SizedBox(height: 4),
-                                Text(item['location']!,
-                                    style: const TextStyle(fontSize: 13, color: Colors.white70)),
-                              ],
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(14, 14, 14, 14),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(item['title']!,
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w700, color: Colors.black87)),
-                      const SizedBox(height: 10),
-                      Row(
-                        children: [
-                          const Icon(Icons.place, size: 14, color: _kCaption),
-                          const SizedBox(width: 6),
-                          Text(item['distance']!, style: const TextStyle(fontSize: 12, color: _kCaption)),
-                          const SizedBox(width: 10),
-                          const Icon(Icons.group, size: 14, color: _kCaption),
-                          const SizedBox(width: 6),
-                          Text(item['roommates']!, style: const TextStyle(fontSize: 12, color: _kCaption)),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          );
-        },
-      ),
+  Widget _buildFeaturedList(List<Map<String, dynamic>> listings) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final screenWidth = constraints.maxWidth;
+        double cardWidth = screenWidth * 0.78;
+        if (cardWidth < 280) cardWidth = 280;
+        if (cardWidth > 340) cardWidth = 340;
+
+        return SizedBox(
+          height: cardWidth * 1.05,
+          child: ListView.separated(
+            scrollDirection: Axis.horizontal,
+            itemCount: listings.length,
+            separatorBuilder: (_, __) => const SizedBox(width: 16),
+            itemBuilder: (context, index) {
+              return SizedBox(
+                width: cardWidth,
+                child: _buildFeaturedCard(listings[index], cardWidth),
+              );
+            },
+          ),
+        );
+      },
     );
   }
 
-  Widget _buildRecentCard(Map<String, String> listing) {
+  Widget _buildFeaturedCard(Map<String, dynamic> item, double width) {
     return Container(
-      margin: const EdgeInsets.only(bottom: 18),
+      width: width,
       decoration: BoxDecoration(
         color: _kSurface,
-        borderRadius: BorderRadius.circular(24),
+        borderRadius: BorderRadius.circular(22),
         boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+          const BoxShadow(
+            color: Color.fromRGBO(0, 0, 0, 0.05),
             blurRadius: 18,
-            offset: const Offset(0, 8),
+            offset: Offset(0, 8),
           ),
         ],
       ),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Stack(
             children: [
               ClipRRect(
-                borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
-                child: Image.network(
-                  listing['image']!,
-                  height: 180,
-                  fit: BoxFit.cover,
-                  errorBuilder: (_, __, ___) => Container(
-                    height: 180,
-                    color: const Color(0xFFECEFF4),
+                borderRadius: const BorderRadius.vertical(
+                  top: Radius.circular(22),
+                ),
+                child: SizedBox(
+                  width: width,
+                  height: width * 0.58,
+                  child: Image.network(
+                    item['image']!,
+                    width: width,
+                    height: width * 0.58,
+                    fit: BoxFit.cover,
                   ),
                 ),
               ),
               Positioned(
-                top: 16,
-                right: 16,
+                top: 14,
+                right: 14,
                 child: Container(
-                  width: 38,
-                  height: 38,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 6,
+                  ),
                   decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.92),
-                    borderRadius: BorderRadius.circular(14),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withOpacity(0.08),
-                        blurRadius: 10,
-                        offset: const Offset(0, 4),
+                    color: const Color.fromRGBO(255, 255, 255, 0.9),
+                    borderRadius: BorderRadius.circular(999),
+                  ),
+                  child: Row(
+                    children: const [
+                      Icon(Icons.check_circle, color: _kAccentColor, size: 14),
+                      SizedBox(width: 6),
+                      Text(
+                        'VERIFIED',
+                        style: TextStyle(
+                          fontSize: 10,
+                          color: _kBodyText,
+                          fontWeight: FontWeight.w700,
+                        ),
                       ),
                     ],
                   ),
-                  child: const Icon(Icons.favorite_border, color: _kAccentColor, size: 20),
                 ),
               ),
-              if (listing['verified'] == 'true')
-                Positioned(
-                  top: 16,
-                  left: 16,
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                    decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.92),
-                      borderRadius: BorderRadius.circular(16),
-                    ),
-                    child: Row(
-                      children: const [
-                        Icon(Icons.verified, color: _kAccentColor, size: 14),
-                        SizedBox(width: 6),
-                        Text('Verified', style: TextStyle(fontSize: 11, color: _kAccentColor, fontWeight: FontWeight.w700)),
-                      ],
-                    ),
-                  ),
-                ),
             ],
           ),
           Padding(
-            padding: const EdgeInsets.fromLTRB(18, 18, 18, 18),
+            padding: const EdgeInsets.fromLTRB(16, 16, 16, 18),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(listing['title']!,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w700, color: Colors.black87)),
-                const SizedBox(height: 6),
-                Text(listing['price']!,
-                    style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: _kAccentColor)),
-                const SizedBox(height: 10),
-                Text(listing['snippet']!,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(fontSize: 14, color: _kBodyText, height: 1.5)),
-                const SizedBox(height: 14),
+                Text(
+                  item['price']!,
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w700,
+                    color: _kAccentColor,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  item['title']!,
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w700,
+                    color: _kBodyText,
+                  ),
+                ),
+                const SizedBox(height: 8),
                 Row(
                   children: [
-                    const Icon(Icons.place, size: 14, color: _kCaption),
+                    const Icon(
+                      Icons.location_on_outlined,
+                      size: 14,
+                      color: _kCaption,
+                    ),
                     const SizedBox(width: 6),
-                    Text(listing['location']!, style: const TextStyle(fontSize: 12, color: _kCaption)),
-                    const SizedBox(width: 14),
-                    const Icon(Icons.location_on_outlined, size: 14, color: _kCaption),
-                    const SizedBox(width: 6),
-                    Text(listing['distance']!, style: const TextStyle(fontSize: 12, color: _kCaption)),
-                    const SizedBox(width: 14),
-                    const Icon(Icons.group_outlined, size: 14, color: _kCaption),
-                    const SizedBox(width: 6),
-                    Text(listing['roommates']!, style: const TextStyle(fontSize: 12, color: _kCaption)),
+                    Expanded(
+                      child: Text(
+                        item['location']!,
+                        style: const TextStyle(fontSize: 12, color: _kCaption),
+                      ),
+                    ),
                   ],
                 ),
-                const SizedBox(height: 12),
-                Text(listing['address']!,
-                    style: const TextStyle(fontSize: 13, color: _kCaption, height: 1.5)),
+                const SizedBox(height: 8),
+                Text(
+                  item['details']!,
+                  style: const TextStyle(fontSize: 12, color: _kCaption),
+                ),
               ],
             ),
           ),
@@ -485,42 +467,210 @@ class HomeScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildBottomNavigation(BuildContext context) {
-    final bottomPadding = MediaQuery.of(context).padding.bottom;
+  Widget _buildRecentCard(Map<String, dynamic> item) {
     return Container(
-      padding: EdgeInsets.only(top: 10, bottom: bottomPadding > 0 ? bottomPadding : 14),
-      decoration: const BoxDecoration(
-        color: Colors.white,
+      margin: const EdgeInsets.only(bottom: 18),
+      decoration: BoxDecoration(
+        color: _kSurface,
+        borderRadius: BorderRadius.circular(22),
         boxShadow: [
-          BoxShadow(color: Colors.black12, blurRadius: 18, offset: Offset(0, -6)),
+          const BoxShadow(
+            color: Color.fromRGBO(0, 0, 0, 0.04),
+            blurRadius: 16,
+            offset: Offset(0, 8),
+          ),
         ],
       ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceAround,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _buildNavItem(icon: Icons.home_filled, label: 'Home', active: true),
-          _buildNavItem(icon: Icons.search, label: 'Search'),
-          _buildNavItem(icon: Icons.add_circle_outline, label: 'Add Listing'),
-          _buildNavItem(icon: Icons.chat_bubble_outline, label: 'Chats'),
-          _buildNavItem(icon: Icons.person_outline, label: 'Profile'),
+          ClipRRect(
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(22)),
+            child: Image.network(
+              item['image']!,
+              width: double.infinity,
+              height: 180,
+              fit: BoxFit.cover,
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 16, 16, 18),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        item['title']!,
+                        style: const TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.w700,
+                          color: _kBodyText,
+                        ),
+                      ),
+                    ),
+                    const Icon(Icons.favorite_border, color: _kAccentColor),
+                  ],
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  item['price']!,
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w700,
+                    color: _kAccentColor,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  item['snippet']!,
+                  style: const TextStyle(fontSize: 14, color: _kCaption),
+                ),
+                const SizedBox(height: 12),
+                Wrap(
+                  spacing: 14,
+                  runSpacing: 8,
+                  alignment: WrapAlignment.start,
+                  crossAxisAlignment: WrapCrossAlignment.center,
+                  children: [
+                    _buildTagRow(
+                      icon: Icons.location_on_outlined,
+                      text: item['location']!,
+                    ),
+                    _buildTagRow(
+                      icon: Icons.circle,
+                      text: item['distance']!,
+                      iconSize: 8,
+                    ),
+                    _buildTagText(item['roommates']!),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                Text(
+                  item['address']!,
+                  style: const TextStyle(fontSize: 12, color: _kCaption),
+                ),
+                const SizedBox(height: 12),
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 8,
+                  ),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFEDE9FE),
+                    borderRadius: BorderRadius.circular(14),
+                  ),
+                  child: const Text(
+                    'AVAILABLE NOW',
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: _kAccentColor,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
         ],
       ),
     );
   }
 
-  Widget _buildNavItem({required IconData icon, required String label, bool active = false}) {
-    return Column(
+  Widget _buildTagRow({
+    required IconData icon,
+    required String text,
+    double iconSize = 14,
+  }) {
+    return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Icon(icon, size: 24, color: active ? _kAccentColor : const Color(0xFF9EA6BB)),
-        const SizedBox(height: 4),
-        Text(label,
-            style: TextStyle(
-              fontSize: 11,
-              fontWeight: FontWeight.w600,
-              color: active ? _kAccentColor : const Color(0xFF9EA6BB),
-            )),
+        Icon(icon, size: iconSize, color: _kCaption),
+        const SizedBox(width: 6),
+        Text(text, style: const TextStyle(fontSize: 12, color: _kCaption)),
       ],
+    );
+  }
+
+  Widget _buildTagText(String text) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      decoration: BoxDecoration(
+        color: _kSurface,
+        borderRadius: BorderRadius.circular(999),
+        border: Border.all(color: _kBorder),
+      ),
+      child: Text(text, style: const TextStyle(fontSize: 12, color: _kCaption)),
+    );
+  }
+
+  Widget _buildNoMatchesCard() {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: _kSurface,
+        borderRadius: BorderRadius.circular(22),
+        border: Border.all(color: _kBorder),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'No matches found?',
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.w700,
+              color: _kBodyText,
+            ),
+          ),
+          const SizedBox(height: 10),
+          const Text(
+            'Try widening your search area or adjusting your budget filters to see more listings.',
+            style: TextStyle(fontSize: 14, color: _kCaption, height: 1.5),
+          ),
+          const SizedBox(height: 18),
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: _kAccentColor,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                padding: const EdgeInsets.symmetric(vertical: 14),
+              ),
+              onPressed: () {},
+              child: const Text(
+                'Reset filters',
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildBottomNavigationBar() {
+    return BottomAppBar(
+      color: _kSurface,
+      shape: const CircularNotchedRectangle(),
+      notchMargin: 8,
+      elevation: 16,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 10),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: const [
+            Icon(Icons.home, color: _kAccentColor),
+            Icon(Icons.search, color: _kCaption),
+            SizedBox(width: 48),
+            Icon(Icons.chat_bubble_outline, color: _kCaption),
+            Icon(Icons.person_outline, color: _kCaption),
+          ],
+        ),
+      ),
     );
   }
 }
