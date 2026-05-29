@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../services/dummy_data_service.dart';
+
 const Color _kAccentColor = Color(0xFFD946A6);
 const Color _kBackground = Color(0xFFF7F8FB);
 const Color _kSurface = Colors.white;
@@ -15,16 +17,34 @@ class ProfileScreen extends StatefulWidget {
 }
 
 class _ProfileScreenState extends State<ProfileScreen> {
-  final TextEditingController _nameController =
-      TextEditingController(text: 'Abebe kebede');
-  final TextEditingController _emailController =
-      TextEditingController(text: 'abebe.kebede@uni.edu');
-  final TextEditingController _phoneController =
-      TextEditingController(text: '+1 (555) 234-5678');
-  final TextEditingController _bioController = TextEditingController(
-    text:
-        'Final year Architecture student at Central University. Looking for a quiet, study-friendly environment near campus.',
-  );
+  DummyProfileData? _profileData;
+  late final TextEditingController _nameController;
+  late final TextEditingController _emailController;
+  late final TextEditingController _phoneController;
+  late final TextEditingController _bioController;
+
+  @override
+  void initState() {
+    super.initState();
+    _nameController = TextEditingController();
+    _emailController = TextEditingController();
+    _phoneController = TextEditingController();
+    _bioController = TextEditingController();
+    _loadProfileData();
+  }
+
+  Future<void> _loadProfileData() async {
+    final service = await DummyDataService.instance;
+    final profile = service.profile;
+
+    _nameController.text = profile.name;
+    _emailController.text = profile.email;
+    _phoneController.text = profile.phone;
+    _bioController.text = profile.bio;
+
+    if (!mounted) return;
+    setState(() => _profileData = profile);
+  }
 
   @override
   void dispose() {
@@ -37,6 +57,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   @override
   Widget build(BuildContext context) {
+    if (_profileData == null) {
+      return const Scaffold(
+        backgroundColor: _kBackground,
+        body: Center(child: CircularProgressIndicator()),
+      );
+    }
+
+    final profile = _profileData!;
+
     return Scaffold(
       backgroundColor: _kBackground,
       appBar: AppBar(
@@ -104,8 +133,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       height: 120,
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
-                        image: const DecorationImage(
-                          image: NetworkImage('https://i.pravatar.cc/300'),
+                        image: DecorationImage(
+                          image: NetworkImage(profile.avatarUrl),
                           fit: BoxFit.cover,
                         ),
                       ),
@@ -144,14 +173,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
               _buildTextField(
                 controller: _nameController,
                 label: 'Full name',
-                hintText: 'Abebe kebede',
+                hintText: profile.hints['name'] ?? '',
                 icon: Icons.person,
               ),
               const SizedBox(height: 18),
               _buildTextField(
                 controller: _emailController,
                 label: 'Email address',
-                hintText: 'abebe.kebede@uni.edu',
+                hintText: profile.hints['email'] ?? '',
                 icon: Icons.email_outlined,
                 keyboardType: TextInputType.emailAddress,
               ),
@@ -159,7 +188,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               _buildTextField(
                 controller: _phoneController,
                 label: 'Phone number',
-                hintText: '+251 (9) 234-5678',
+                hintText: profile.hints['phone'] ?? '',
                 icon: Icons.phone_outlined,
                 keyboardType: TextInputType.phone,
               ),
@@ -167,7 +196,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               _buildTextField(
                 controller: _bioController,
                 label: 'Bio / Status',
-                hintText: 'A university student living in a shared flat...',
+                hintText: profile.hints['bio'] ?? '',
                 icon: Icons.notes_outlined,
                 maxLines: 4,
               ),
