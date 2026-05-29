@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+
+import '../services/dummy_data_service.dart';
 import 'add_property_screen.dart';
 import 'profile_screen.dart';
 
@@ -9,58 +11,6 @@ const Color _kBodyText = Color(0xFF111827);
 const Color _kCaption = Color(0xFF6B7280);
 const Color _kBorder = Color(0xFFE5E7EB);
 
-const List<String> _filterChips = ['Location', 'Budget', 'Room type'];
-
-const List<Map<String, dynamic>> _featuredListings = [
-  {
-    'image':
-        'https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?auto=format&fit=crop&w=800&q=80',
-    'price': r'$420 / mo',
-    'title': 'Cozy Studio near Central Uni',
-    'location': 'East Heights, London',
-    'details': '2 roommates',
-    'tags': ['Location', 'Budget'],
-  },
-  {
-    'image':
-        'https://images.unsplash.com/photo-1494526585095-c41746248156?auto=format&fit=crop&w=800&q=80',
-    'price': r'$550 / mo',
-    'title': 'Modern ensuite with city access',
-    'location': 'Green Quarter, London',
-    'details': '1 roommate',
-    'tags': ['Room type'],
-  },
-];
-
-const List<Map<String, dynamic>> _recentListings = [
-  {
-    'image':
-        'https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?auto=format&fit=crop&w=900&q=80',
-    'title': 'Bright Room in Shared Flat',
-    'price': r'$380/mo',
-    'snippet':
-        'Sunny room with built-in wardrobe and high-speed Wi-Fi. Available from June.',
-    'location': 'Camden Town',
-    'distance': '2.1 miles',
-    'roommates': '3 RM',
-    'address': '142 Olympic Way, Wembley HA9 0NP',
-    'tags': ['Location', 'Room type'],
-  },
-  {
-    'image':
-        'https://images.unsplash.com/photo-1494526585095-c41746248156?auto=format&fit=crop&w=900&q=80',
-    'title': 'Penthouse Room w/ City View',
-    'price': r'$720/mo',
-    'snippet':
-        'Experience luxury living in the heart of the city. Access to gym and pool.',
-    'location': 'Isle of Dogs',
-    'distance': '0.8 miles',
-    'roommates': '2 RM',
-    'address': '22 Marsh Wall, E14 9AF',
-    'tags': ['Budget', 'Room type'],
-  },
-];
-
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
 
@@ -69,32 +19,135 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
+  DummyHomeData? _homeData;
   final Set<String> _activeFilters = {};
+  final TextEditingController _locationFilterController = TextEditingController();
+  final TextEditingController _budgetFilterController = TextEditingController();
+  String _roomTypeFilter = 'Apartment';
+
+  @override
+  void initState() {
+    super.initState();
+    _loadDummyData();
+  }
+
+  Future<void> _loadDummyData() async {
+    final service = await DummyDataService.instance;
+    if (!mounted) return;
+    setState(() => _homeData = service.home);
+  }
+
+  @override
+  void dispose() {
+    _locationFilterController.dispose();
+    _budgetFilterController.dispose();
+    super.dispose();
+  }
 
   List<Map<String, dynamic>> _filteredListings(
     List<Map<String, dynamic>> items,
   ) {
-    if (_activeFilters.isEmpty) return items;
-    return items.where((item) {
-      final tags = item['tags'] as List<String>;
-      return tags.any(_activeFilters.contains);
-    }).toList();
+    return items.where(_matchesFilters).toList();
+  }
+
+  bool _matchesFilters(Map<String, dynamic> item) {
+    if (_activeFilters.contains('Location')) {
+      final query = _locationFilterController.text.trim().toLowerCase();
+      if (query.isNotEmpty) {
+        final location = (item['location'] as String? ?? '').toLowerCase();
+        final address = (item['address'] as String? ?? '').toLowerCase();
+        if (!location.contains(query) && !address.contains(query)) {
+          return false;
+        }
+      }
+    }
+
+    if (_activeFilters.contains('Budget')) {
+      final budgetText = _budgetFilterController.text.trim();
+      if (budgetText.isNotEmpty) {
+        final maxBudget = double.tryParse(
+          budgetText.replaceAll(RegExp(r'[^0-9.]'), ''),
+        );
+        final rent = (item['rentAmount'] as num?)?.toDouble() ??
+            _parseRentFromPrice(item['price'] as String?);
+        if (maxBudget != null && rent != null && rent > maxBudget) {
+          return false;
+        }
+      }
+    }
+
+    if (_activeFilters.contains('Room type')) {
+      final propertyType = item['propertyType'] as String? ?? '';
+      if (propertyType.toLowerCase() != _roomTypeFilter.toLowerCase()) {
+        return false;
+      }
+    }
+
+    return true;
+  }
+
+  double? _parseRentFromPrice(String? price) {
+    if (price == null) return null;
+    final match = RegExp(r'[\d.]+').firstMatch(price);
+    return match != null ? double.tryParse(match.group(0)!) : null;
+  }
+
+  String get _filterSummary {
+    if (_activeFilters.isEmpty) return 'Filtered by: all';
+
+    final parts = <String>[];
+    if (_activeFilters.contains('Location') &&
+        _locationFilterController.text.trim().isNotEmpty) {
+      parts.add('Location: ${_locationFilterController.text.trim()}');
+    } else if (_activeFilters.contains('Location')) {
+      parts.add('Location');
+    }
+    if (_activeFilters.contains('Budget') &&
+        _budgetFilterController.text.trim().isNotEmpty) {
+      parts.add('Budget: ${_budgetFilterController.text.trim()}');
+    } else if (_activeFilters.contains('Budget')) {
+      parts.add('Budget');
+    }
+    if (_activeFilters.contains('Room type')) {
+      parts.add('Room type: $_roomTypeFilter');
+    }
+
+    return 'Filtered by: ${parts.join(', ')}';
   }
 
   void _toggleFilter(String label) {
     setState(() {
       if (_activeFilters.contains(label)) {
         _activeFilters.remove(label);
+        if (label == 'Location') _locationFilterController.clear();
+        if (label == 'Budget') _budgetFilterController.clear();
       } else {
         _activeFilters.add(label);
       }
     });
   }
 
+  void _resetFilters() {
+    setState(() {
+      _activeFilters.clear();
+      _locationFilterController.clear();
+      _budgetFilterController.clear();
+      _roomTypeFilter = 'Apartment';
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
-    final featuredListings = _filteredListings(_featuredListings);
-    final recentListings = _filteredListings(_recentListings);
+    if (_homeData == null) {
+      return const Scaffold(
+        backgroundColor: _kBackground,
+        body: Center(child: CircularProgressIndicator()),
+      );
+    }
+
+    final homeData = _homeData!;
+    final featuredListings = _filteredListings(homeData.featuredListings);
+    final recentListings = _filteredListings(homeData.recentListings);
 
     return Scaffold(
       backgroundColor: _kBackground,
@@ -145,8 +198,8 @@ class _HomeScreenState extends State<HomeScreen> {
                   height: 42,
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(16),
-                    image: const DecorationImage(
-                      image: NetworkImage('https://i.pravatar.cc/100'),
+                    image: DecorationImage(
+                      image: NetworkImage(homeData.headerAvatarUrl),
                       fit: BoxFit.cover,
                     ),
                   ),
@@ -163,9 +216,9 @@ class _HomeScreenState extends State<HomeScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const SizedBox(height: 4),
-              const Text(
-                'Good morning, Alex',
-                style: TextStyle(
+              Text(
+                'Good morning, ${homeData.greetingName}',
+                style: const TextStyle(
                   fontSize: 26,
                   fontWeight: FontWeight.w700,
                   color: _kBodyText,
@@ -173,19 +226,27 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
               const SizedBox(height: 6),
               Row(
-                children: const [
-                  Icon(Icons.location_on_outlined, size: 16, color: _kCaption),
-                  SizedBox(width: 6),
+                children: [
+                  const Icon(
+                    Icons.location_on_outlined,
+                    size: 16,
+                    color: _kCaption,
+                  ),
+                  const SizedBox(width: 6),
                   Text(
-                    '6 new rooms near Central University',
-                    style: TextStyle(fontSize: 14, color: _kCaption),
+                    '${recentListings.length} ${homeData.roomsNearText}',
+                    style: const TextStyle(fontSize: 14, color: _kCaption),
                   ),
                 ],
               ),
               const SizedBox(height: 22),
               _buildSearchBar(),
               const SizedBox(height: 18),
-              _buildFilterChips(),
+              _buildFilterChips(homeData),
+              if (_activeFilters.isNotEmpty) ...[
+                const SizedBox(height: 14),
+                _buildActiveFilterInputs(homeData),
+              ],
               const SizedBox(height: 24),
               _buildSectionHeader('Featured listings', 'See all'),
               const SizedBox(height: 18),
@@ -193,9 +254,7 @@ class _HomeScreenState extends State<HomeScreen> {
               const SizedBox(height: 26),
               _buildSectionHeader(
                 'Recent listings',
-                _activeFilters.isEmpty
-                    ? 'Filtered by: all'
-                    : 'Filtered by: ${_activeFilters.join(', ')}',
+                _filterSummary,
                 showBadge: false,
               ),
               const SizedBox(height: 18),
@@ -256,11 +315,128 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildFilterChips() {
+  Widget _buildActiveFilterInputs(DummyHomeData homeData) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: _kSurface,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: _kBorder),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          if (_activeFilters.contains('Location')) ...[
+            _buildFilterFieldLabel('Location'),
+            const SizedBox(height: 8),
+            _buildFilterTextField(
+              controller: _locationFilterController,
+              hint: 'e.g. Camden Town, Addis Ababa',
+              icon: Icons.location_on_outlined,
+              onChanged: (_) => setState(() {}),
+            ),
+            if (_activeFilters.length > 1) const SizedBox(height: 14),
+          ],
+          if (_activeFilters.contains('Budget')) ...[
+            _buildFilterFieldLabel('Max Budget'),
+            const SizedBox(height: 8),
+            _buildFilterTextField(
+              controller: _budgetFilterController,
+              hint: r'ETB 5000',
+              icon: Icons.payments_outlined,
+              keyboardType: TextInputType.number,
+              onChanged: (_) => setState(() {}),
+            ),
+            if (_activeFilters.contains('Room type')) const SizedBox(height: 14),
+          ],
+          if (_activeFilters.contains('Room type')) ...[
+            _buildFilterFieldLabel('Room Type'),
+            const SizedBox(height: 8),
+            Container(
+              decoration: BoxDecoration(
+                color: _kBackground,
+                borderRadius: BorderRadius.circular(14),
+                border: Border.all(color: _kBorder),
+              ),
+              padding: const EdgeInsets.symmetric(horizontal: 14),
+              child: DropdownButtonHideUnderline(
+                child: DropdownButton<String>(
+                  value: _roomTypeFilter,
+                  isExpanded: true,
+                  items: homeData.roomTypeOptions.map((option) {
+                    return DropdownMenuItem(
+                      value: option,
+                      child: Text(option),
+                    );
+                  }).toList(),
+                  onChanged: (value) {
+                    if (value != null) {
+                      setState(() => _roomTypeFilter = value);
+                    }
+                  },
+                ),
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _buildFilterFieldLabel(String label) {
+    return Text(
+      label,
+      style: const TextStyle(
+        fontSize: 13,
+        fontWeight: FontWeight.w600,
+        color: _kBodyText,
+      ),
+    );
+  }
+
+  Widget _buildFilterTextField({
+    required TextEditingController controller,
+    required String hint,
+    required IconData icon,
+    TextInputType keyboardType = TextInputType.text,
+    required ValueChanged<String> onChanged,
+  }) {
+    return Container(
+      decoration: BoxDecoration(
+        color: _kBackground,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: _kBorder),
+      ),
+      padding: const EdgeInsets.symmetric(horizontal: 12),
+      child: Row(
+        children: [
+          Icon(icon, size: 18, color: _kCaption),
+          const SizedBox(width: 10),
+          Expanded(
+            child: TextField(
+              controller: controller,
+              keyboardType: keyboardType,
+              onChanged: onChanged,
+              decoration: InputDecoration(
+                hintText: hint,
+                hintStyle: const TextStyle(color: _kCaption, fontSize: 14),
+                border: InputBorder.none,
+                isDense: true,
+                contentPadding: const EdgeInsets.symmetric(vertical: 12),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildFilterChips(DummyHomeData homeData) {
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,
       child: Row(
-        children: _filterChips.map((label) {
+        children: homeData.filterChips.map((label) {
           final bool selected = _activeFilters.contains(label);
           return Padding(
             padding: const EdgeInsets.only(right: 10),
@@ -649,7 +825,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
                 padding: const EdgeInsets.symmetric(vertical: 14),
               ),
-              onPressed: () {},
+              onPressed: _resetFilters,
               child: const Text(
                 'Reset filters',
                 style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
